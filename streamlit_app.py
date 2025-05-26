@@ -34,15 +34,28 @@ st.markdown("""
     /* Hide "Deploy" button */
     .stDeployButton {display: none;}
     
+    /* Icon styling with emojis as fallback */
+    .icon {
+        margin-right: 8px;
+        color: #61A9C8;
+    }
+    
+    .icon-large {
+        margin-right: 12px;
+        color: #61A9C8;
+        font-size: 1.2em;
+    }
+    
     /* Custom app styling */
     .main-header {
-        padding: 2rem 1rem;
+        padding: 1.5rem 1rem;
         background: linear-gradient(90deg, #61A9C8 0%, #335069 100%);
         color: white;
         border-radius: 10px;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        margin-top: -1rem;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        min-height: 140px;
+        min-height: 120px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -76,30 +89,32 @@ st.markdown("""
         margin: 1rem 0;
     }
 </style>
+
+
 """, unsafe_allow_html=True)
 
 def main():
     # Header with logo positioned to the left and centered text
     st.markdown("""
     <div class="main-header">
-        <div style="display: flex; align-items: center; margin-bottom: 1.5rem; padding-left: 2rem;">
-            <img src="data:image/png;base64,{}" width="120" style="margin-right: 30px; flex-shrink: 0;">
-            <div style="flex-grow: 1; text-align: center; padding-right: 150px;">
-                <h1 style="margin: 0; font-size: 2.8rem;">LinkedIn Carousel Generator</h1>
-                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem;">Transform your Markdown content into professional LinkedIn carousel slides</p>
+        <div style="display: flex; align-items: center; margin-bottom: 1rem; padding-left: 2rem;">
+            <img src="data:image/png;base64,{}" width="110" style="margin-right: 25px; flex-shrink: 0;">
+            <div style="flex-grow: 1; text-align: center; padding-right: 135px;">
+                <h1 style="margin: 0; font-size: 2.6rem; line-height: 1.1;">LinkedIn Carousel Generator</h1>
+                <p style="margin: 0.3rem 0 0 0; font-size: 1.05rem;">Transform your Markdown content into professional LinkedIn carousel slides</p>
             </div>
         </div>
-        <p style="font-size: 14px; opacity: 0.8; text-align: center;">Powered by ProjectWorkLab</p>
+        <p style="font-size: 13px; opacity: 0.8; text-align: center; margin: 0;">Powered by ProjectWorkLab</p>
     </div>
     """.format(get_logo_base64()), unsafe_allow_html=True)
 
     # Sidebar configuration
     with st.sidebar:
-        st.header("⚙️ Configuration")
+        st.header("⚙ Configuration")
         
         # OpenAI API Key input
         api_key = st.text_input(
-            "🔑 OpenAI API Key (Optional)",
+            "🗝 OpenAI API Key (Optional)",
             type="password",
             help="If you have your own OpenAI API key, use it here for full control. If not provided, we'll use ProjectWorkLab's corporate key with premium quality.",
             placeholder="sk-... (optional - we have corporate key)"
@@ -122,15 +137,15 @@ def main():
         
         # Features info
         st.markdown("""
-        ### 🚀 Features
+        ### ⚡ Features
         - **🤖 AI-Powered Analysis** (GPT-4)
-        - **🎨 Professional Design**
-        - **📱 LinkedIn Optimized** (1080x1080px)
-        - **🧠 Smart Content Organization**
-        - **🏢 Corporate Branding**
+        - **✨ Professional Design**
+        - **📐 LinkedIn Optimized** (1080x1080px)
+        - **⚡ Smart Content Organization**
+        - **🏛 Corporate Branding**
         
-        ### ⚡ Operation Modes
-        - **🏢 Corporate Key**: Premium quality automatic (default in production)
+        ### ⚙ Operation Modes
+        - **🏛 Corporate Key**: Premium quality automatic (default in production)
         - **👤 Personal Key**: Full control of your account and costs
         - **🔓 No Key**: Basic content only (local development)
         """)
@@ -140,22 +155,22 @@ def main():
         # Help section
         with st.expander("📖 How to Use"):
             st.markdown("""
-            1. **Upload** your Markdown file or paste content
-            2. **Configure** OpenAI API key (optional)
-            3. **Generate** carousel slides
-            4. **Preview** slides in browser
-            5. **Download** PDF for LinkedIn
+            1. **⬆ Upload** your Markdown file or paste content
+            2. **🗝 Configure** OpenAI API key (optional)
+            3. **▶ Generate** carousel slides
+            4. **👁 Preview** slides in browser
+            5. **⬇ Download** PDF for LinkedIn
             """)
         
         with st.expander("💡 Tips for Best Results"):
             st.markdown("""
-            - **🏢 Premium quality** automatically enabled in production
-            - **🔑 Personal key** optional for cost control or local development
-            - Use clear markdown structure (# ## ###)
-            - Include statistics and numbers
-            - Add case studies and results
-            - Keep content business-focused
-            - Use bullet points for organization
+            - **🏛 Premium quality** automatically enabled in production
+            - **🗝 Personal key** optional for cost control or local development
+            - **# Use clear markdown structure** (# ## ###)
+            - **📈 Include statistics** and numbers
+            - **📄 Add case studies** and results
+            - **🎯 Keep content business-focused**
+            - **• Use bullet points** for organization
             """)
 
     # Main content area
