@@ -90,18 +90,24 @@ def main():
         
         # OpenAI API Key input
         api_key = st.text_input(
-            "OpenAI API Key (Highly Recommended)",
+            "🔑 OpenAI API Key (Optional)",
             type="password",
-            help="Required for professional, AI-powered content analysis. Without this, output quality will be very basic.",
-            placeholder="sk-..."
+            help="If you have your own OpenAI API key, use it here for full control. If not provided, we'll use ProjectWorkLab's corporate key with premium quality.",
+            placeholder="sk-... (optional - we have corporate key)"
         )
         
+        # Check for API key (user's or environment)
         if api_key:
             os.environ['OPENAI_API_KEY'] = api_key
-            st.success("✅ API Key configured - Professional mode enabled!")
+            st.success("✅ Using your personal API Key - Full control!")
         else:
-            st.warning("⚠️ No API key provided - Output will be very basic")
-            st.info("💡 Get your API key from: https://platform.openai.com/api-keys")
+            # In production (Render), corporate key will be available
+            # In local development, might not be
+            if os.getenv('OPENAI_API_KEY'):
+                st.success("✅ Using corporate API Key - Premium quality guaranteed!")
+            else:
+                st.warning("⚠️ No API key available - Output will be very basic")
+                st.info("💡 Get your personal key at: https://platform.openai.com/api-keys")
         
         st.markdown("---")
         
@@ -114,9 +120,10 @@ def main():
         - **🧠 Smart Content Organization**
         - **🏢 Corporate Branding**
         
-        ### ⚡ Quality Comparison
-        - **With API Key**: Professional, detailed, business-focused slides
-        - **Without API Key**: Basic, generic content only
+        ### ⚡ Operation Modes
+        - **🏢 Corporate Key**: Premium quality automatic (default in production)
+        - **👤 Personal Key**: Full control of your account and costs
+        - **🔓 No Key**: Basic content only (local development)
         """)
         
         st.markdown("---")
@@ -133,7 +140,8 @@ def main():
         
         with st.expander("💡 Tips for Best Results"):
             st.markdown("""
-            - **🔑 Add OpenAI API Key** for professional quality
+            - **🏢 Premium quality** automatically enabled in production
+            - **🔑 Personal key** optional for cost control or local development
             - Use clear markdown structure (# ## ###)
             - Include statistics and numbers
             - Add case studies and results
