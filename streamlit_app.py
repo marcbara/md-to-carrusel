@@ -35,6 +35,41 @@ def log_activity(message):
         # Silently fail if logging doesn't work
         pass
 
+def load_metrics():
+    """Load metrics from file"""
+    try:
+        with open("app_metrics.json", "r") as f:
+            return json.load(f)
+    except:
+        return {
+            "generations_today": 0,
+            "total_slides_generated": 0,
+            "pdf_downloads": 0,
+            "errors_count": 0,
+            "last_reset": datetime.datetime.now().strftime('%Y-%m-%d')
+        }
+
+def save_metrics(metrics):
+    """Save metrics to file"""
+    try:
+        with open("app_metrics.json", "w") as f:
+            json.dump(metrics, f)
+    except:
+        pass
+
+def update_metric(metric_name, increment=1):
+    """Update a specific metric"""
+    metrics = load_metrics()
+    
+    # Reset daily metrics if it's a new day
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    if metrics.get("last_reset") != today:
+        metrics["generations_today"] = 0
+        metrics["last_reset"] = today
+    
+    metrics[metric_name] = metrics.get(metric_name, 0) + increment
+    save_metrics(metrics)
+
 # Page configuration
 st.set_page_config(
     page_title="LinkedIn Carousel Generator - ProjectWorkLab",
@@ -172,11 +207,12 @@ def show_admin_panel():
     with tab2:
         st.header("📈 Real-time Analytics")
         
-        # Real metrics from session state
-        generations_today = st.session_state.get('generations_today', 0)
-        total_slides = st.session_state.get('total_slides_generated', 0)
-        pdf_downloads = st.session_state.get('pdf_downloads', 0)
-        errors_count = st.session_state.get('errors_count', 0)
+        # Real metrics from persistent storage
+        metrics = load_metrics()
+        generations_today = metrics.get('generations_today', 0)
+        total_slides = metrics.get('total_slides_generated', 0)
+        pdf_downloads = metrics.get('pdf_downloads', 0)
+        errors_count = metrics.get('errors_count', 0)
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -459,25 +495,25 @@ Company X achieved remarkable results by implementing...
                             st.session_state.slides = slides
                             st.session_state.filename = filename
                             
-                            # Update metrics
-                            st.session_state.generations_today = st.session_state.get('generations_today', 0) + 1
-                            st.session_state.total_slides_generated = st.session_state.get('total_slides_generated', 0) + len(slides)
+                            # Update persistent metrics
+                            update_metric('generations_today', 1)
+                            update_metric('total_slides_generated', len(slides))
                             
                             # Log activity
                             log_activity(f"SUCCESS: Generated {len(slides)} slides in {generation_time:.1f}s")
                             
                             st.success(f"✅ Generated {len(slides)} slides successfully!")
                         else:
-                            # Log error
+                            # Log error and update metrics
                             log_activity("ERROR: Failed to generate slides")
-                            st.session_state.errors_count = st.session_state.get('errors_count', 0) + 1
+                            update_metric('errors_count', 1)
                             
                             st.error("❌ Failed to generate slides")
                     
                     except Exception as e:
-                        # Log exception
+                        # Log exception and update metrics
                         log_activity(f"ERROR: Exception in generation: {str(e)}")
-                        st.session_state.errors_count = st.session_state.get('errors_count', 0) + 1
+                        update_metric('errors_count', 1)
                         
                         st.error(f"❌ Error generating slides: {str(e)}")
         
@@ -631,8 +667,8 @@ Company X achieved remarkable results by implementing...
                                 mime="application/pdf",
                                 use_container_width=True
                             ):
-                                # Log PDF download
-                                st.session_state.pdf_downloads = st.session_state.get('pdf_downloads', 0) + 1
+                                # Log PDF download and update metrics
+                                update_metric('pdf_downloads', 1)
                                 log_activity(f"INFO: PDF downloaded - {filename}_carousel.pdf ({len(pdf_data)} bytes)")
                             
                             st.success(f"✅ PDF generated successfully! ({len(pdf_data)} bytes)")
