@@ -8,9 +8,19 @@ temp/
 *.tmp
 *.temp
 
-# Generated files
+# Generated files and local testing
 *_carousel.html
 *_carousel.pdf
+
+# Input and output files (local testing)
+*.md
+*.html
+*.pdf
+
+# Keep important documentation and config files
+!README.md
+!DEPLOYMENT.md
+!packages.txt
 
 # Python
 __pycache__/
