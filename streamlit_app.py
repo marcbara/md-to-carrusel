@@ -23,9 +23,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Custom CSS for better styling and hiding Streamlit elements
 st.markdown("""
 <style>
+    /* Hide Streamlit menu and footer */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Hide "Deploy" button */
+    .stDeployButton {display: none;}
+    
+    /* Custom app styling */
     .main-header {
         padding: 2rem 1rem;
         background: linear-gradient(90deg, #61A9C8 0%, #335069 100%);
