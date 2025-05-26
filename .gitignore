@@ -61,6 +61,7 @@ Thumbs.db
 
 # Logs
 *.log
+app_logs.txt
 
 # Streamlit
 .streamlit/secrets.toml 

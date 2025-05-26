@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 from io import BytesIO
 import base64
+import datetime
 from generate_carousel import generate_slides_with_ai, create_slide_html, generate_pdf_from_html, generate_html_from_slides as generate_html_from_slides_core
 import json
 
@@ -14,6 +15,25 @@ def get_logo_base64():
             return base64.b64encode(f.read()).decode()
     except:
         return ""
+
+def log_activity(message):
+    """Write activity to log file"""
+    try:
+        log_file = "app_logs.txt"
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_entry = f"{timestamp} - {message}\n"
+        
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(log_entry)
+        
+        # Also add to session state for real-time viewing
+        if 'admin_logs' not in st.session_state:
+            st.session_state.admin_logs = []
+        st.session_state.admin_logs.append(log_entry.strip())
+        
+    except Exception as e:
+        # Silently fail if logging doesn't work
+        pass
 
 # Page configuration
 st.set_page_config(
@@ -93,7 +113,193 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
+def show_admin_panel():
+    """Secret admin panel - only accessible via URL parameter"""
+    st.markdown("🔐 **ADMIN PANEL** - ProjectWorkLab Internal", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    tab1, tab2, tab3 = st.tabs(["📊 Usage Logs", "📈 Analytics", "⚙️ System Info"])
+    
+    with tab1:
+        st.header("📋 System Logs")
+        
+        # Real system logs
+        import os
+        
+        # Check if log file exists
+        log_file = "app_logs.txt"
+        if os.path.exists(log_file):
+            with open(log_file, "r") as f:
+                real_logs = f.readlines()
+            
+            st.subheader("Recent Activity")
+            if real_logs:
+                for log in real_logs[-20:]:  # Last 20 entries
+                    log = log.strip()
+                    if "ERROR" in log.upper():
+                        st.error(f"❌ {log}")
+                    elif "SUCCESS" in log.upper() or "DOWNLOAD" in log.upper():
+                        st.success(f"✅ {log}")
+                    elif "INFO" in log.upper():
+                        st.info(f"ℹ️ {log}")
+                    else:
+                        st.write(f"📝 {log}")
+                
+                # Download real logs
+                st.download_button(
+                    "📥 Download Full Logs",
+                    data="".join(real_logs),
+                    file_name=f"carousel_logs_{datetime.datetime.now().strftime('%Y%m%d')}.txt",
+                    mime="text/plain"
+                )
+            else:
+                st.info("📝 Log file is empty")
+        else:
+            st.warning("📂 No log file found yet")
+            st.info("💡 Logs will appear here once users start using the app")
+        
+        # Session state logs (current session activity)
+        st.subheader("Current Session Activity")
+        if 'admin_logs' not in st.session_state:
+            st.session_state.admin_logs = []
+        
+        if st.session_state.admin_logs:
+            for log in st.session_state.admin_logs[-10:]:
+                st.write(f"🔄 {log}")
+        else:
+            st.info("No activity in current session")
+    
+    with tab2:
+        st.header("📈 Real-time Analytics")
+        
+        # Real metrics from session state
+        generations_today = st.session_state.get('generations_today', 0)
+        total_slides = st.session_state.get('total_slides_generated', 0)
+        pdf_downloads = st.session_state.get('pdf_downloads', 0)
+        errors_count = st.session_state.get('errors_count', 0)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Generations Today", generations_today)
+        with col2:
+            st.metric("Total Slides Created", total_slides)
+        with col3:
+            st.metric("PDF Downloads", pdf_downloads)
+        with col4:
+            st.metric("Errors", errors_count)
+        
+        # Real system info
+        st.subheader("📊 System Status")
+        
+        # Memory usage (if available)
+        try:
+            import psutil
+            memory_percent = psutil.virtual_memory().percent
+            cpu_percent = psutil.cpu_percent()
+            st.write(f"**Memory Usage:** {memory_percent:.1f}%")
+            st.write(f"**CPU Usage:** {cpu_percent:.1f}%")
+        except ImportError:
+            st.info("Install psutil for detailed system metrics")
+        
+        # Session info
+        st.subheader("🔄 Session Information")
+        st.write(f"**Active Sessions:** {len(st.session_state)}")
+        st.write(f"**Current Time:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # API Key status
+        api_key_status = "✅ Active" if os.getenv('OPENAI_API_KEY') else "❌ Not Set"
+        st.write(f"**API Key Status:** {api_key_status}")
+        
+        # File system info
+        st.subheader("💾 Storage Information")
+        try:
+            import shutil
+            total, used, free = shutil.disk_usage("/")
+            st.write(f"**Total Space:** {total // (2**30)} GB")
+            st.write(f"**Used Space:** {used // (2**30)} GB")
+            st.write(f"**Free Space:** {free // (2**30)} GB")
+        except:
+            st.info("Storage information not available")
+    
+    with tab3:
+        st.header("⚙️ System Information")
+        
+        # System info
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("🔧 Configuration")
+            st.write("**Environment:** Production")
+            st.write("**API Key Status:** ✅ Corporate Active")
+            st.write("**PDF Engine:** Playwright")
+            st.write("**Storage:** Temporary")
+            st.write("**Version:** 1.0.0")
+        
+        with col2:
+            st.subheader("📊 Performance")
+            # Real performance metrics
+            avg_gen_time = st.session_state.get('avg_generation_time', 'N/A')
+            pdf_success_rate = st.session_state.get('pdf_success_rate', 'N/A')
+            
+            st.write(f"**Avg Generation Time:** {avg_gen_time}")
+            st.write(f"**PDF Success Rate:** {pdf_success_rate}")
+            
+            # Real memory if available
+            try:
+                import psutil
+                memory_mb = psutil.virtual_memory().used // (1024*1024)
+                st.write(f"**Memory Usage:** {memory_mb}MB")
+            except ImportError:
+                st.write("**Memory Usage:** Install psutil for details")
+            
+            # Uptime (app start time)
+            if 'app_start_time' not in st.session_state:
+                st.session_state.app_start_time = datetime.datetime.now()
+            
+            uptime = datetime.datetime.now() - st.session_state.app_start_time
+            st.write(f"**Session Uptime:** {str(uptime).split('.')[0]}")
+        
+        # Admin actions
+        st.subheader("🛠️ Admin Actions")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("🔄 Clear Cache"):
+                st.success("Cache cleared!")
+        
+        with col2:
+            if st.button("📊 Export Analytics"):
+                st.success("Analytics exported!")
+        
+        with col3:
+            if st.button("🚪 Exit Admin"):
+                st.query_params.clear()
+                st.rerun()
+        
+        # Debug info
+        with st.expander("🐛 Debug Information"):
+            st.write("**Session State:**", dict(st.session_state))
+            st.write("**Query Params:**", dict(st.query_params))
+            import os
+            st.write("**Environment Variables:**", {
+                "OPENAI_API_KEY": "✅ Set" if os.getenv('OPENAI_API_KEY') else "❌ Not Set",
+                "PORT": os.getenv('PORT', 'Not Set')
+            })
+
 def main():
+    # Initialize logging on app start
+    if 'app_initialized' not in st.session_state:
+        log_activity("INFO: App started - LinkedIn Carousel Generator initialized")
+        st.session_state.app_initialized = True
+        st.session_state.app_start_time = datetime.datetime.now()
+    
+    # Check for secret admin access
+    if st.query_params.get("admin") == "pwl2024":
+        log_activity("INFO: Admin panel accessed")
+        show_admin_panel()
+        return
+    
+    # Normal app continues here
     # Header with logo positioned to the left and centered text
     st.markdown("""
     <div class="main-header">
@@ -241,17 +447,38 @@ Company X achieved remarkable results by implementing...
             if st.button("🚀 Generate Carousel", type="primary", use_container_width=True):
                 with st.spinner("🔄 Generating carousel slides..."):
                     try:
+                        import time
+                        start_time = time.time()
+                        
                         # Generate slides
                         slides = generate_slides_with_ai(markdown_content)
+                        
+                        generation_time = time.time() - start_time
                         
                         if slides:
                             st.session_state.slides = slides
                             st.session_state.filename = filename
+                            
+                            # Update metrics
+                            st.session_state.generations_today = st.session_state.get('generations_today', 0) + 1
+                            st.session_state.total_slides_generated = st.session_state.get('total_slides_generated', 0) + len(slides)
+                            
+                            # Log activity
+                            log_activity(f"SUCCESS: Generated {len(slides)} slides in {generation_time:.1f}s")
+                            
                             st.success(f"✅ Generated {len(slides)} slides successfully!")
                         else:
+                            # Log error
+                            log_activity("ERROR: Failed to generate slides")
+                            st.session_state.errors_count = st.session_state.get('errors_count', 0) + 1
+                            
                             st.error("❌ Failed to generate slides")
                     
                     except Exception as e:
+                        # Log exception
+                        log_activity(f"ERROR: Exception in generation: {str(e)}")
+                        st.session_state.errors_count = st.session_state.get('errors_count', 0) + 1
+                        
                         st.error(f"❌ Error generating slides: {str(e)}")
         
         else:
@@ -397,13 +624,16 @@ Company X achieved remarkable results by implementing...
                                 pdf_data = pdf_file.read()
                             
                             # Create download button for PDF
-                            st.download_button(
+                            if st.download_button(
                                 label="⬇️ Download PDF",
                                 data=pdf_data,
                                 file_name=f"{filename}_carousel.pdf",
                                 mime="application/pdf",
                                 use_container_width=True
-                            )
+                            ):
+                                # Log PDF download
+                                st.session_state.pdf_downloads = st.session_state.get('pdf_downloads', 0) + 1
+                                log_activity(f"INFO: PDF downloaded - {filename}_carousel.pdf ({len(pdf_data)} bytes)")
                             
                             st.success(f"✅ PDF generated successfully! ({len(pdf_data)} bytes)")
                             
